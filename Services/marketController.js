@@ -1,16 +1,16 @@
 
-import {getallaccessories, getallparts} from '../Models/supabaseModel.js';
+import {confirmOrder, getallaccessories, getallparts} from '../Models/supabaseModel.js';
 
-// export async function saveChatHistory(req, res) {
-//   const { customer_id, report } = req.body;
-//   try {
-//         const data = await insertReport(customer_id, report);
-//         return res.status(200).json({ message: 'History saved successfully', data });
-//   } catch (error) {
-//     console.error('Error saving history:', error);
-//     return res.status(500).json({ message: 'An error occurred while saving history.' });
-//   }
-// }
+export async function saveNewOrder(req, res) {
+  const orderdetails = req.body;
+  try {
+        const data = await confirmOrder(orderdetails);
+        return res.status(200).json({ message: 'Order saved successfully', data });
+  } catch (error) {
+    console.error('Error saving history:', error);
+    return res.status(500).json({ message: 'An error occurred while saving Order.' });
+  }
+}
 
 export async function getaccessoriesdata(req, res) {
   try {

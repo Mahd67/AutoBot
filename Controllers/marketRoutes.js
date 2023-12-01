@@ -1,12 +1,12 @@
 // routes/chatRoutes.js
 
 import express from "express";
-import { getaccessoriesdata, getpartsdata} from "../Services/marketController.js"
+import { getaccessoriesdata, getpartsdata, saveNewOrder} from "../Services/marketController.js"
 import { get } from "http";
 
 const router = express.Router();
 
-//router.post('/chatHistory', saveChatHistory);
+router.post('/createorder', saveNewOrder);
 
 router.get('/getaccessories',getaccessoriesdata);
 

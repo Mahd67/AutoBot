@@ -11,12 +11,65 @@ const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey, { auth: {
 
 config();
 
-export async function confirmOrder( orderdata, res) {
+export async function confirmOrder( orderdata) {
+  const order = orderdata.order;
+  const shipping_address = orderdata.shipping_address;
   try {
-    
+    //first deduct quantites of bought items in their respective tables
+    for (const item of order.items) {
+      //accessories
+      if(item.category === "accessories"){
+        const { data, error } = await supabaseClient
+        .from('accessories')
+        .select('quantity')
+        .eq('accessory_id', item.product_id);
+        
+        console.log(data[0]['quantity']);
+
+        const { data1, error1 } = await supabaseClient
+        .from('accessories')
+        .update({ quantity: data[0]['quantity'] - item.quantity })
+        .eq('accessory_id', item.product_id);
+      }
+      //parts
+      if(item.category === "parts"){
+        const { data, error } = await supabaseClient
+        .from('parts')
+        .select('quantity')
+        .eq('part_id', item.product_id);
+        
+        console.log(data[0]['quantity']);
+
+        const { data1, error1 } = await supabaseClient
+        .from('parts')
+        .update({ quantity: data[0]['quantity'] - item.quantity })
+        .eq('part_id', item.product_id);
+      }
+    }
+    //now we save the order
+    const { data, error } = await supabaseClient
+      .from('orderhistory')
+      .insert([
+        { 
+          items: order.items,
+          sub_total_price: order.sub_total_price,
+          shipping_price: order.shipping_price,
+          total_price: order.total_price,
+          user_id: order.user_id,
+          payment_method: order.payment_method,
+          firstname: shipping_address.firstname,
+          lastname: shipping_address.lastname,
+          city: shipping_address.city,
+          address: shipping_address.address,
+          zip_code: shipping_address.zip_code,
+          email: shipping_address.email,
+          phone: shipping_address.phone,
+        },
+      ]);
   } catch (error) {
     throw error;
   }
+  return
 }
 
 export async function getallaccessories() { 
