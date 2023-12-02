@@ -10,6 +10,7 @@ export async function saveNewOrder(req, res) {
     console.error('Error saving history:', error);
     return res.status(500).json({ message: 'An error occurred while saving Order.' });
   }
+  return
 }
 
 export async function getaccessoriesdata(req, res) {
@@ -23,6 +24,7 @@ export async function getaccessoriesdata(req, res) {
     console.error('Error getting Accessories:', error);
     return res.status(500).json({ message: 'An error occurred while getting Accessories.' });
   }
+  return
 }
 
 export async function getpartsdata(req, res) {
@@ -36,6 +38,7 @@ export async function getpartsdata(req, res) {
     console.error('Error getting parts:', error);
     return res.status(500).json({ message: 'An error occurred while getting parts.' });
   }
+  return
 }
 
 // export async function getReportdataOne(req, res) {

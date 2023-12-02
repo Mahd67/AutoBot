@@ -91,6 +91,7 @@ try {
     console.error('Error retrieving accessories:', error);
     return { message: 'An error occurred while retrieving accessories.' };
   }
+  return
 }
 
 export async function getallparts() { 
@@ -112,6 +113,7 @@ export async function getallparts() {
         console.error('Error retrieving parts:', error);
         return { message: 'An error occurred while retrieving parts.' };
       }
+      return
     }
 
 // export async function getReportOne(customer_id,uuid) { 
