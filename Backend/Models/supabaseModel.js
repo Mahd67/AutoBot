@@ -19,30 +19,44 @@ export async function confirmOrder( orderdata) {
     for (const item of order.items) {
       //accessories
       if(item.category === "accessories"){
+        //get quantity of item
         const { data, error } = await supabaseClient
         .from('accessories')
-        .select('quantity')
+        .select('*')
         .eq('accessory_id', item.product_id);
         
-        console.log(data[0]['quantity']);
-
+        console.log(data[0]['quantity'],data[0]['numberoforders']);
+        //update quantity of item
         const { data1, error1 } = await supabaseClient
         .from('accessories')
         .update({ quantity: data[0]['quantity'] - item.quantity })
+        .eq('accessory_id', item.product_id);
+
+        //increase the total number of orders of the item
+        const { data2, error2 } = await supabaseClient
+        .from('accessories')
+        .update({ numberoforders: data[0]['numberoforders'] + item.quantity })
         .eq('accessory_id', item.product_id);
       }
       //parts
       if(item.category === "parts"){
+        //get quantity of item
         const { data, error } = await supabaseClient
         .from('parts')
-        .select('quantity')
+        .select('*')
         .eq('part_id', item.product_id);
         
         console.log(data[0]['quantity']);
-
+        //update quantity of item
         const { data1, error1 } = await supabaseClient
         .from('parts')
         .update({ quantity: data[0]['quantity'] - item.quantity })
+        .eq('part_id', item.product_id);
+
+        //increase the total number of orders of the item
+        const { data2, error2 } = await supabaseClient
+        .from('parts')
+        .update({ numberoforders: data[0]['numberoforders'] + item.quantity })
         .eq('part_id', item.product_id);
       }
     }
@@ -115,6 +129,28 @@ export async function getallparts() {
       }
       return
     }
+
+    export async function getallcarcareproducts() { 
+      try {
+          const { data, error } = await supabaseClient
+            .from('carcareproducts')
+            .select()
+            .order('category', { ascending: true });
+          
+          if (error || data.length === 0) {
+            return null;
+          }
+          if (data.length !== 0) {
+            const partsdata = data;
+            console.log(partsdata);
+            return { partsdata };
+          }
+        } catch (error) {
+          console.error('Error retrieving parts:', error);
+          return { message: 'An error occurred while retrieving parts.' };
+        }
+        return
+      }
 
 // export async function getReportOne(customer_id,uuid) { 
 //   try {
