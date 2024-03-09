@@ -2,6 +2,9 @@
 import supabase from "@supabase/supabase-js";
 import { config} from "dotenv";
 import { config as dotConfig } from "dotenv";
+import fs from "fs";  
+import PDFDocument from "pdfkit";
+import xlsx from "xlsx";
 
 dotConfig();
 
@@ -10,6 +13,34 @@ const supabaseKey = process.env.SUPABASE_KEY;
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
 
 config();
+
+function jsonToPdf(jsonData, outputPdfPath) {
+  // Create the directory if it doesn't exist
+  // const directory = outputPdfPath.substring(0, outputPdfPath.lastIndexOf('/'));
+  // if (!fs.existsSync(directory)) {
+  //   fs.mkdirSync(directory, { recursive: true });
+  // }
+
+  const pdfPath = outputPdfPath;
+  const doc = new PDFDocument();
+
+  doc.pipe(fs.createWriteStream(pdfPath));
+
+  // Set font and size
+  doc.font('Courier').fontSize(8);
+
+  // Convert JSON object to a string and split into lines
+  const jsonString = JSON.stringify(jsonData, null, 4);
+  const lines = jsonString.split('\n');
+
+  // Write each line to the PDF
+  lines.forEach((line, index) => {
+    doc.text(line, 10, 10 + index * 10);
+  });
+
+  doc.end();
+  console.log(`PDF saved to ${pdfPath}`);
+}
 
 export async function confirmOrder( orderdata) {
   const order = orderdata.order;
@@ -80,6 +111,13 @@ export async function confirmOrder( orderdata) {
           phone: shipping_address.phone,
         },
       ]);
+      
+      //saving pdf of order
+      const date_time = new Date();
+      const formattedDateTime = date_time.toISOString().replace(/T/, ' ').replace(/\..+/, '').replace(' ','_');
+      const pdfPath = `./Receipt/${shipping_address.firstname}_${formattedDateTime}.pdf`
+      jsonToPdf(orderdata,"temp.pdf");
+     
   } catch (error) {
     throw error;
   }
@@ -108,6 +146,65 @@ try {
   return
 }
 
+export async function addaccessories(accessoriesdata) { 
+  try {
+      const { data, error } = await supabaseClient
+        .from('accessories')
+        .insert([
+          {
+            name: accessoriesdata.name,
+            description: accessoriesdata.description,
+            category: accessoriesdata.category,
+            brand: accessoriesdata.brand,
+            price: accessoriesdata.price,
+            quantity: accessoriesdata.quantity,
+            images: accessoriesdata.images,
+            compatibility: accessoriesdata.compatibility,
+            type: accessoriesdata.type,
+            subcategory: accessoriesdata.subcategory,
+            numberoforders: accessoriesdata.numberoforders,
+            }
+            ]);
+            console.log(error);
+            return true;
+    } catch (error) {
+      console.error('Error storing data:', error);
+      return { message: 'An error occurred while storing data.' };
+    }
+}
+
+export async function deleteaccessories(uuid) { 
+  try {
+      const { data, error } = await supabaseClient
+        .from('accessories')
+        .delete()
+        .eq('accessory_id', uuid);
+      console.log(error);
+      return true;
+    } catch (error) {
+      console.error('Error storing data:', error);
+      return { message: 'An error occurred while storing data.' };
+    }
+}
+
+export async function updateAccessory(uuid, updatedFields) {
+  try {
+    const { data, error } = await supabaseClient
+      .from('accessories')
+      .update(updatedFields)
+      .eq('accessory_id', uuid);
+
+    if (error) {
+      throw error;
+    }
+
+    return true; // Indicate successful update
+  } catch (error) {
+    console.error('Error updating data:', error);
+    return { message: 'An error occurred while updating data.' };
+  }
+}
+
 export async function getallparts() { 
     try {
         const { data, error } = await supabaseClient
@@ -128,48 +225,196 @@ export async function getallparts() {
         return { message: 'An error occurred while retrieving parts.' };
       }
       return
+}
+
+export async function addpart(partdata) { 
+  try {
+      const { data, error } = await supabaseClient
+        .from('parts')
+        .insert([
+          {
+            name: partdata.name,
+            description: partdata.description,
+            category: partdata.category,
+            brand: partdata.brand,
+            price: partdata.price,
+            quantity: partdata.quantity,
+            images: partdata.images,
+            compatibility: partdata.compatibility,
+            type: partdata.type,
+            subcategory: partdata.subcategory,
+            numberoforders: partdata.numberoforders,
+            }
+            ]);
+            console.log(error);
+            return true;
+    } catch (error) {
+      console.error('Error storing data:', error);
+      return { message: 'An error occurred while storing data.' };
+    }
+}
+
+export async function deletepart(uuid) { 
+  try {
+      const { data, error } = await supabaseClient
+        .from('parts')
+        .delete()
+        .eq('part_id', uuid);
+      console.log(error);
+      return true;
+    } catch (error) {
+      console.error('Error storing data:', error);
+      return { message: 'An error occurred while storing data.' };
+    }
+}
+
+export async function updatePart(uuid, updatedFields) {
+  try {
+    const { data, error } = await supabaseClient
+      .from('parts')
+      .update(updatedFields)
+      .eq('part_id', uuid);
+
+    if (error) {
+      throw error;
     }
 
-    export async function getallcarcareproducts() { 
+    return true; // Indicate successful update
+  } catch (error) {
+    console.error('Error updating data:', error);
+    return { message: 'An error occurred while updating data.' };
+  }
+}
+
+export async function getallcarcareproducts() { 
+  try {
+      const { data, error } = await supabaseClient
+        .from('carcareproducts')
+        .select()
+        .order('category', { ascending: true });
+      
+      if (error || data.length === 0) {
+        return null;
+      }
+      if (data.length !== 0) {
+        const partsdata = data;
+        console.log(partsdata);
+        return { partsdata };
+      }
+    } catch (error) {
+      console.error('Error retrieving parts:', error);
+      return { message: 'An error occurred while retrieving parts.' };
+    }
+    return
+}
+
+export async function addcarcareproduct(carcareproductdata) { 
+  try {
+      const { data, error } = await supabaseClient
+        .from('carcareproducts')
+        .insert([
+          {
+            type: carcareproductdata.type,
+            name: carcareproductdata.name,
+            description: carcareproductdata.description,
+            category: carcareproductdata.category,
+            subcategory: carcareproductdata.subcategory,
+            brand: carcareproductdata.brand,
+            price: carcareproductdata.price,
+            quantity: carcareproductdata.quantity,
+            images: carcareproductdata.images,
+            compatibility: carcareproductdata.compatibility,
+            numberoforders: carcareproductdata.numberoforders,
+            }
+            ]);
+            console.log(error);
+            return true;
+    } catch (error) {
+      console.error('Error storing data:', error);
+      return { message: 'An error occurred while storing data.' };
+    }
+}
+
+export async function deletecarcareproduct(uuid) { 
+  try {
+      const { data, error } = await supabaseClient
+        .from('carcareproducts')
+        .delete()
+        .eq('carcareproduct_id', uuid);
+      console.log(error);
+      return true;
+    } catch (error) {
+      console.error('Error storing data:', error);
+      return { message: 'An error occurred while storing data.' };
+    }
+}
+
+export async function updateCarCareProduct(uuid, updatedFields) {
+  try {
+    const { data, error } = await supabaseClient
+      .from('carcareproducts')
+      .update(updatedFields)
+      .eq('carcareproduct_id', uuid);
+
+    if (error) {
+      throw error;
+    }
+
+    return true; // Indicate successful update
+  } catch (error) {
+    console.error('Error updating data:', error);
+    return { message: 'An error occurred while updating data.' };
+  }
+}
+  
+export async function fillSupaBaseCarData(filename) {
+  
+  // Read the Excel file
+  const workbook = xlsx.readFile(filename);
+
+  // Assuming data is in the first sheet, you can modify this accordingly
+  const sheetName = workbook.SheetNames[0];
+  const worksheet = workbook.Sheets[sheetName];
+
+  // Convert Excel data to JSON
+  const jsonData = xlsx.utils.sheet_to_json(worksheet);
+
+  // Parse and store data in Supabase table
+  jsonData.forEach(async (item) => {
       try {
           const { data, error } = await supabaseClient
-            .from('carcareproducts')
-            .select()
-            .order('category', { ascending: true });
-          
-          if (error || data.length === 0) {
-            return null;
-          }
-          if (data.length !== 0) {
-            const partsdata = data;
-            console.log(partsdata);
-            return { partsdata };
-          }
-        } catch (error) {
-          console.error('Error retrieving parts:', error);
-          return { message: 'An error occurred while retrieving parts.' };
-        }
-        return
-      }
+          .from('lahore_cars')
+          .insert([
+              {
+                  title: item.title,
+                  price: item.price,
+                  seller_contact: item.sellercontact,
+                  location: item.location,
+                  // images: item.images,
+                  // model_year: item.modelyear,
+                  // mileage: item.millage,
+                  // fuel_type: item.fueltype,
+                  // transmission: item.transmission,
+                  // registered_in: item.registeredin,
+                  // color: item.color,
+                  // assembly: item.assembly,
+                  // engine_capacity: item.enginecapacity,
+                  // body_type: item.bodytype,
+                  // last_updated: item.lastupdated,
+                  // //ad_ref: item.adref,
+                  // car_features: item.carfeatures,
+                  // seller_comments: item.sellercomments.trim()
+              }
+          ]);
 
-// export async function getReportOne(customer_id,uuid) { 
-//   try {
-//       const { data, error } = await supabaseClient
-//         .from('report')
-//         .select()
-//         .eq('customer_id', customer_id)
-//         .eq('uuid', uuid);
-      
-//       if (error || data.length === 0) {
-//         return null;
-//       }
-//       if (data.length !== 0) {
-//         const history = data[0];
-//         console.log(history);
-//         return { history };
-//       }
-//     } catch (error) {
-//       console.error('Error retrieving Report:', error);
-//       return { message: 'An error occurred while retrieving Report.' };
-//     }
-//   }
+          if (error) {
+              throw error;
+          }
+
+          console.log('Data inserted successfully:', data);
+      } catch (error) {
+          console.error('Error inserting data into Supabase:', error.message);
+      }
+      return
+  });
+}
