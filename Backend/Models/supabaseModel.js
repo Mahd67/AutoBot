@@ -418,3 +418,58 @@ export async function fillSupaBaseCarData(filename) {
       return
   });
 }
+
+export async function changeOrderHistoryStatus(uuid) {
+  try {
+    // Fetch the current status
+    const { data: existingData, error: fetchError } = await supabaseClient
+      .from('orderhistory')
+      .select('status')
+      .eq('order_id', uuid)
+      .single();
+
+    if (fetchError) {
+      throw fetchError;
+    }
+
+    // Determine the new status based on the current status
+    const newStatus = existingData.status === 'FALSE' ? 'TRUE' : 'FALSE';
+
+    // Update the status
+    const { data, error } = await supabaseClient
+      .from('orderhistory')
+      .update({ status: newStatus })
+      .eq('order_id', uuid);
+
+    if (error) {
+      throw error;
+    }
+
+    return true; // Indicate successful update
+  } catch (error) {
+    console.error('Error updating data:', error);
+    return { message: 'An error occurred while updating data.' };
+  }
+}  
+
+export async function getallorders() { 
+  try {
+      const { data, error } = await supabaseClient
+        .from('orderhistory')
+        .select()
+        .order('total_price', { ascending: false });
+      
+      if (error || data.length === 0) {
+        return null;
+      }
+      if (data.length !== 0) {
+        const partsdata = data;
+        console.log(partsdata);
+        return { partsdata };
+      }
+    } catch (error) {
+      console.error('Error retrieving orderhistory:', error);
+      return { message: 'An error occurred while retrieving orderhistory.' };
+    }
+    return
+}

@@ -1,7 +1,7 @@
 // routes/chatRoutes.js
 
 import express from "express";
-import { getaccessoriesdata, getpartsdata, saveNewOrder, getcarcaredata, fillSupaBase, addcarcaredata, addpartdata, addaccessoriesdata, deleteaccessoriesdata, deletepartdata, deletecarcareproductdata, updatecarcareproductdata, updateaccessorydata, updatepartdata} from "../Services/marketController.js"
+import { getaccessoriesdata, getpartsdata, saveNewOrder, getcarcaredata, fillSupaBase, addcarcaredata, addpartdata, addaccessoriesdata, deleteaccessoriesdata, deletepartdata, deletecarcareproductdata, updatecarcareproductdata, updateaccessorydata, updatepartdata, changeOrderStatus, getorderdata} from "../Services/marketController.js"
 
 
 const router = express.Router();
@@ -33,5 +33,9 @@ router.delete('/deletecarcareproducts',deletecarcareproductdata);
 router.post('/updatecarcareproducts',updatecarcareproductdata);
 
 router.post('/savecardata',fillSupaBase)
+
+router.post('/changeorderstatus',changeOrderStatus)
+
+router.get('/getorderhistory',getorderdata);
 
 export default router;
