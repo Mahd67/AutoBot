@@ -246,7 +246,9 @@ export async function addpart(partdata) {
             numberoforders: partdata.numberoforders,
             }
             ]);
-            console.log(error);
+            if(error){
+              console.log(error);
+            }
             return true;
     } catch (error) {
       console.error('Error storing data:', error);
