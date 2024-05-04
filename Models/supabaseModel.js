@@ -475,3 +475,57 @@ export async function getallorders() {
     }
     return
 }
+
+export async function updateProductRating(uuid, productType, rating) {
+  try {
+    // Determine the database table based on the product type
+    let tableName,uuidname;
+    switch (productType) {
+      case 'accessories':
+        tableName = 'accessories';
+        uuidname = 'accessory_id';
+        break;
+      case 'carcareproducts':
+        tableName = 'carcareproducts';
+        uuidname = 'carcareproduct_id';
+        break;
+      case 'parts':
+        tableName = 'parts';
+        uuidname = 'part_id';
+        break;
+      default:
+        throw new Error('Invalid product type');
+    }
+
+    // Fetch the current rating and number of ratings for the product
+    const { data: existingData, error: fetchError } = await supabaseClient
+      .from(tableName)
+      .select('*')
+      .eq(uuidname, uuid)
+      .single();
+
+    if (fetchError) {
+      throw fetchError;
+    }
+
+    // Calculate the new average rating based on the existing rating and number of ratings
+    const currentRating = existingData.rating;
+    const numRatings = existingData.numberofratings;
+    const newRating = ((currentRating * numRatings) + rating) / parseFloat(numRatings + 1);
+   
+    // Update the rating and increment the number of ratings
+    const { data, error } = await supabaseClient
+      .from(tableName)
+      .update({ rating: newRating, numberofratings: numRatings + 1 })
+      .eq(uuidname, uuid);
+
+    if (error) {
+      throw error;
+    }
+
+    return true; // Indicate successful update
+  } catch (error) {
+    console.error('Error updating product rating:', error);
+    return { message: 'An error occurred while updating product rating.' };
+  }
+}
