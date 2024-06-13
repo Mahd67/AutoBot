@@ -1,5 +1,5 @@
 
-import {confirmOrder, getallaccessories, getallcarcareproducts, getallparts, fillSupaBaseCarData, addcarcareproduct, addpart, addaccessories, deleteaccessories, deletepart, deletecarcareproduct, updateCarCareProduct, updateAccessory, updatePart, changeOrderHistoryStatus, getallorders, updateProductRating} from '../Models/supabaseModel.js';
+import {confirmOrder, getallaccessories, getallcarcareproducts, getallparts, fillSupaBaseCarData, addcarcareproduct, addpart, addaccessories, deleteaccessories, deletepart, deletecarcareproduct, updateCarCareProduct, updateAccessory, updatePart, changeOrderHistoryStatus, getallorders, updateProductRating, getpartbyid} from '../Models/supabaseModel.js';
 
 export async function saveNewOrder(req, res) {
   const orderdetails = req.body;
@@ -73,6 +73,19 @@ export async function getpartsdata(req, res) {
   } catch (error) {
     console.error('Error getting parts:', error);
     return res.status(500).json({ message: 'An error occurred while getting parts.' });
+  }
+}
+
+export async function getpartdatabyid(req, res) {
+  try {
+        const data = await getpartbyid(req.body.id);
+        if (data === null) {
+          return res.status(404).json();
+        } 
+        return res.status(200).json({ message: 'part found', data });
+  } catch (error) {
+    console.error('Error getting part:', error);
+    return res.status(500).json({ message: 'An error occurred while getting part.' });
   }
 }
 

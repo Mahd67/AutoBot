@@ -205,10 +205,29 @@ export async function updateAccessory(uuid, updatedFields) {
   }
 }
 
+const reformatImages = (data) => {
+  return data.map(row => {
+    // Join the array into a single string
+    let combinedString = row.images.join('');
+
+    // Use a regex to find the actual URLs and create a proper JSON string
+    const matches = combinedString.match(/https:\/\/[^\s,"]+/g);
+
+    if (matches) {
+      // Assign the matches back to the images field
+      row.images = matches;
+    } else {
+      row.images = []; // If no matches found, fallback to an empty array
+    }
+
+    return row;
+  });
+};
+
 export async function getallparts() { 
     try {
         const { data, error } = await supabaseClient
-          .from('parts')
+          .from('documents2')
           .select()
           .order('category', { ascending: true });
         
@@ -216,7 +235,8 @@ export async function getallparts() {
           return null;
         }
         if (data.length !== 0) {
-          const partsdata = data;
+          const processedData = await reformatImages(data);
+          const partsdata = processedData;
           console.log(partsdata);
           return { partsdata };
         }
@@ -225,6 +245,41 @@ export async function getallparts() {
         return { message: 'An error occurred while retrieving parts.' };
       }
       return
+}
+
+const reformatImagesForOne = (row) => {
+  // Join the array into a single string
+  let combinedString = row.images.join('');
+
+  // Use a regex to find the actual URLs and create a proper JSON string
+  const matches = combinedString.match(/https:\/\/[^\s,"]+/g);
+
+  if (matches) {
+    // Assign the matches back to the images field
+    row.images = matches;
+  } else {
+    row.images = []; // If no matches found, fallback to an empty array
+  }
+
+  return row;
+};
+
+export async function getpartbyid(id) {
+  try {
+    const { data, error } = await supabaseClient
+      .from('documents2')
+      .select()
+      .eq('id', id);
+
+    if (error || data.length === 0) {
+      return null;
+    }
+    const processedData = await reformatImagesForOne(data[0]);
+    return processedData;
+  } catch (error) {
+    console.error('Error retrieving part:', error);
+    return { message: 'An error occurred while retrieving part.' };
+  }
 }
 
 export async function addpart(partdata) { 
@@ -490,7 +545,7 @@ export async function updateProductRating(uuid, productType, rating) {
         uuidname = 'carcareproduct_id';
         break;
       case 'parts':
-        tableName = 'parts';
+        tableName = 'documents2';
         uuidname = 'part_id';
         break;
       default:
